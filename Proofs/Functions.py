@@ -120,8 +120,8 @@ class ForecastingModels():
 
             # Results
             for i in range(self.y.shape[1]):
-                test_scores[count, 0, i] = round(mean_squared_error(self.y_test[:, i], y_pred[:, i]), 3)
-                test_scores[count, 1, i] = round(mean_squared_error(self.y_test[:, i], y_pred[:, i], squared=True), 3)
+                test_scores[count, 0, i] = round(mean_squared_error(self.y_test[:, i], y_pred[:, i], squared=True), 3)
+                test_scores[count, 1, i] = round(mean_squared_error(self.y_test[:, i], y_pred[:, i], squared=False), 3)
                 test_scores[count, 2, i] = round(mean_absolute_error(self.y_test[:, i], y_pred[:, i]), 3)
                 test_scores[count, 3, i] = round(np.mean(np.abs(self.y_test[:, i] - y_pred[:, i])) * 100, 3)
                 test_scores[count, 4, i] = round(r2_score(self.y_test[:, i], y_pred[:, i]), 3)
