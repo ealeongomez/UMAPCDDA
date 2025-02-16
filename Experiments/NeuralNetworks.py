@@ -1,15 +1,11 @@
-import os, time
+import os, warnings
 import numpy as np
 import pandas as pd
-import warnings
 import tensorflow as tf
 from tensorflow import keras
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from tabulate import tabulate
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.cluster import KMeans
-import matplotlib.pyplot as plt
 
 # Configurar TensorFlow para usar múltiples GPUs
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -38,8 +34,17 @@ class ForecastingModels:
         self.batch_size = batch_size
         self.epochs = epochs  
         self.num_layers = num_layers
-        self.loss_function = loss_function
         self.predictionHorizon = self.y_train.shape[1] if len(self.y_train.shape) > 1 else 1
+
+        # Seleccionar la función de pérdida según el string proporcionado
+        if loss_function == 'mse':
+            self.loss_function = 'mse'
+        elif loss_function == 'mae':
+            self.loss_function = 'mae'
+        elif loss_function == 'kernel':
+            self.loss_function = kernel_mse_loss
+        else:
+            raise ValueError("Invalid loss function. Choose 'mse', 'mae', or 'kernel'")
 
     def Performance_Metrics(self, forecasting_test):
         metrics = {"MSE": [], "RMSE": [], "MAE": [], "MAPE": [], "R2": []}
