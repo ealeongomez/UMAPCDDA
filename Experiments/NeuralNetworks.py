@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from tensorflow import keras
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolute_percentage_error, r2_score
 from tabulate import tabulate
 from sklearn.model_selection import train_test_split
 
@@ -13,8 +13,13 @@ warnings.filterwarnings("ignore")
 
 strategy = tf.distribute.MirroredStrategy()
 
-def mean_absolute_percentage_error(y_true, y_pred):
-    return np.mean(np.abs((y_true - y_pred) / y_true))
+def calculate_mape(y_true, y_pred, threshold=1e-2):
+    if y_true.shape != y_pred.shape:
+        raise ValueError("The dimensions of y_true and y_pred must match")
+    
+    y_true_safe = np.where(np.abs(y_true) < threshold, threshold, y_true)
+    mape = mean_absolute_percentage_error(y_true_safe, y_pred) * 100
+    return mape
 
 def kernel_mse_loss(y_true, y_pred):
     sigma = tf.sqrt(2.0) / 2.0
@@ -49,13 +54,13 @@ class ForecastingModels:
     def Performance_Metrics(self, forecasting_test):
         metrics = {"MSE": [], "RMSE": [], "MAE": [], "MAPE": [], "R2": []}
         col_names = ["Metrics"] + [str(k + 1) for k in range(self.predictionHorizon)]
- 
+
         for k in range(self.predictionHorizon):
             y_true, y_pred = self.y_test[:, k], forecasting_test[:, k]
             metrics["MSE"].append(round(mean_squared_error(y_true, y_pred), 3))
             metrics["RMSE"].append(round(mean_squared_error(y_true, y_pred) ** 0.5, 3))
             metrics["MAE"].append(round(mean_absolute_error(y_true, y_pred), 3))
-            metrics["MAPE"].append(np.mean(np.abs((y_true - y_pred) / y_true)) * 100)
+            metrics["MAPE"].append(round(calculate_mape(y_true, y_pred), 3))
             metrics["R2"].append(round(r2_score(y_true, y_pred), 3))
 
         data = [[key] + value for key, value in metrics.items()]
