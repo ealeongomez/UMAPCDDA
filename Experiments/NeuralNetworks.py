@@ -49,13 +49,13 @@ class ForecastingModels:
     def Performance_Metrics(self, forecasting_test):
         metrics = {"MSE": [], "RMSE": [], "MAE": [], "MAPE": [], "R2": []}
         col_names = ["Metrics"] + [str(k + 1) for k in range(self.predictionHorizon)]
-
+ 
         for k in range(self.predictionHorizon):
             y_true, y_pred = self.y_test[:, k], forecasting_test[:, k]
             metrics["MSE"].append(round(mean_squared_error(y_true, y_pred), 3))
             metrics["RMSE"].append(round(mean_squared_error(y_true, y_pred) ** 0.5, 3))
             metrics["MAE"].append(round(mean_absolute_error(y_true, y_pred), 3))
-            metrics["MAPE"].append(np.mean(np.abs(y_true - y_pred)) * 100)
+            metrics["MAPE"].append(np.mean(np.abs((y_true - y_pred) / y_true)) * 100)
             metrics["R2"].append(round(r2_score(y_true, y_pred), 3))
 
         data = [[key] + value for key, value in metrics.items()]
