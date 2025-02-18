@@ -46,7 +46,7 @@ class ForecastingModels:
             self.loss_function = 'mse'
         elif loss_function == 'mae':
             self.loss_function = 'mae'
-        elif loss_function == 'kernel':
+        elif loss_function == 'KernelMSE':
             self.loss_function = kernel_mse_loss
         else:
             raise ValueError("Invalid loss function. Choose 'mse', 'mae', or 'kernel'")
