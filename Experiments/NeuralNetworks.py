@@ -82,8 +82,9 @@ class ForecastingModels:
                     raise ValueError("Invalid model type")
 
             output_layer = keras.layers.Dense(self.predictionHorizon, name='Output')(layer)
-
             model = keras.Model(inputs=input_layer, outputs=output_layer)
+
+            #print(model.summary())
             model.compile(loss=self.loss_function, optimizer=keras.optimizers.Adam(learning_rate=1e-3), metrics=['mae', 'mse'])
 
             history = model.fit(X_train, y_train, epochs=self.epochs, batch_size=self.batch_size, validation_data=(X_valid, y_valid), verbose=0)
@@ -93,7 +94,7 @@ class ForecastingModels:
     def time_series_cv(self, model_type):
         tscv = TimeSeriesSplit(n_splits=self.n_splits)
         test_scores = np.zeros((self.n_splits, 5, self.y.shape[1]))  # Store metrics for each fold
-        all_fold_weights = {}
+        all_fold_weights, all_history, all_pred = {}, {}, {} 
 
         for count, (train_idx, valid_idx) in enumerate(tscv.split(self.X)):
             print(f"Fold {count + 1}")
@@ -101,16 +102,13 @@ class ForecastingModels:
             X_train, X_valid = self.X[train_idx], self.X[valid_idx]
             y_train, y_valid = self.y[train_idx], self.y[valid_idx]
 
-            # Ensure shape consistency
-            X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], 1)
-            X_valid = X_valid.reshape(X_valid.shape[0], X_valid.shape[1], 1)
-            self.X_test = self.X_test.reshape(self.X_test.shape[0], X_train.shape[1], 1)
-
             model, history = self.build_and_train_model(model_type, X_train, y_train, X_valid, y_valid)
             y_pred = model.predict(self.X_test)
 
             # Save weights for each fold
             all_fold_weights[f'fold_{count + 1}'] = model.get_weights()
+            all_history[f'fold_{count + 1}'] = history
+            all_pred[f'fold_{count + 1}'] = y_pred
 
             # Store metrics for each fold
             for i in range(self.y.shape[1]):
@@ -120,13 +118,16 @@ class ForecastingModels:
                 test_scores[count, 3, i] = round(np.mean(np.abs(self.y_test[:, i] - y_pred[:, i])) * 100, 3)
                 test_scores[count, 4, i] = round(r2_score(self.y_test[:, i], y_pred[:, i]), 3)
 
-        return test_scores, all_fold_weights
+        return test_scores, all_fold_weights, all_history, all_pred
 
     def RNNSimple_Model(self):
-        return self.time_series_cv('RNN')
+        test_scores, all_fold_weights, all_history, all_pred = self.time_series_cv('RNN') 
+        return test_scores, all_fold_weights, all_history, all_pred
 
     def GRU_Model(self):
-        return self.time_series_cv('GRU')
+        test_scores, all_fold_weights, all_history, all_pred = self.time_series_cv('GRU')
+        return test_scores, all_fold_weights, all_history, all_pred
 
     def LSTM_Model(self):
-        return self.time_series_cv('LSTM')
+        test_scores, all_fold_weights, all_history, all_pred = self.time_series_cv('LSTM')
+        return test_scores, all_fold_weights, all_history, all_pred
