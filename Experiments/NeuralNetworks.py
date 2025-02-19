@@ -11,6 +11,14 @@ from sklearn.model_selection import TimeSeriesSplit
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 strategy = tf.distribute.MirroredStrategy()
 
+# Custom loss function: Kernel MSE
+def kernel_mse_loss(y_true, y_pred):
+    sigma = tf.sqrt(2.0) / 2.0
+    diff = tf.square(y_true - y_pred)
+    loss = 1.0 - tf.exp(-diff / (2.0 * sigma**2))
+    return tf.reduce_mean(loss)
+
+# Custom MAPE function with threshold handling
 def calculate_mape(y_true, y_pred, threshold=1e-2):
     if y_true.shape != y_pred.shape:
         raise ValueError("The dimensions of y_true and y_pred must match")
@@ -18,12 +26,6 @@ def calculate_mape(y_true, y_pred, threshold=1e-2):
     y_true_safe = np.where(np.abs(y_true) < threshold, threshold, y_true)
     mape = mean_absolute_percentage_error(y_true_safe, y_pred) * 100
     return mape
-
-def kernel_mse_loss(y_true, y_pred):
-    sigma = tf.sqrt(2.0) / 2.0
-    diff = tf.square(y_true - y_pred)
-    loss = 1.0 - tf.exp(-diff / (2.0 * sigma**2))
-    return tf.reduce_mean(loss)
 
 class ForecastingModels:
     def __init__(self, X, y, X_test, y_test, neurons, num_layers, batch_size, epochs, loss_function, n_splits=5): 
@@ -98,6 +100,11 @@ class ForecastingModels:
 
             X_train, X_valid = self.X[train_idx], self.X[valid_idx]
             y_train, y_valid = self.y[train_idx], self.y[valid_idx]
+
+            # Ensure shape consistency
+            X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], 1)
+            X_valid = X_valid.reshape(X_valid.shape[0], X_valid.shape[1], 1)
+            self.X_test = self.X_test.reshape(self.X_test.shape[0], X_train.shape[1], 1)
 
             model, history = self.build_and_train_model(model_type, X_train, y_train, X_valid, y_valid)
             y_pred = model.predict(self.X_test)
