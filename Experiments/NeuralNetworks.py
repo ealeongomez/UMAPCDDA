@@ -94,7 +94,7 @@ class ForecastingModels:
     def time_series_cv(self, model_type):
         tscv = TimeSeriesSplit(n_splits=self.n_splits)
         test_scores = np.zeros((self.n_splits, 5, self.y.shape[1]))  # Store metrics for each fold
-        all_fold_weights, all_history, all_pred = {}, {}, {} 
+        all_history, all_pred = {}, {}, {} 
 
         for count, (train_idx, valid_idx) in enumerate(tscv.split(self.X)):
             print(f"Fold {count + 1}")
@@ -105,8 +105,7 @@ class ForecastingModels:
             model, history = self.build_and_train_model(model_type, X_train, y_train, X_valid, y_valid)
             y_pred = model.predict(self.X_test)
 
-            # Save weights for each fold
-            all_fold_weights[f'fold_{count + 1}'] = model.get_weights()
+            # Save 
             all_history[f'fold_{count + 1}'] = history
             all_pred[f'fold_{count + 1}'] = y_pred
 
@@ -118,16 +117,16 @@ class ForecastingModels:
                 test_scores[count, 3, i] = round(np.mean(np.abs(self.y_test[:, i] - y_pred[:, i])) * 100, 3)
                 test_scores[count, 4, i] = round(r2_score(self.y_test[:, i], y_pred[:, i]), 3)
 
-        return test_scores, all_fold_weights, all_history, all_pred
+        return test_scores, all_history, all_pred
 
     def RNNSimple_Model(self):
         test_scores, all_fold_weights, all_history, all_pred = self.time_series_cv('RNN') 
-        return test_scores, all_fold_weights, all_history, all_pred
+        return test_scores, all_history, all_pred
 
     def GRU_Model(self):
         test_scores, all_fold_weights, all_history, all_pred = self.time_series_cv('GRU')
-        return test_scores, all_fold_weights, all_history, all_pred
+        return test_scores, all_history, all_pred
 
     def LSTM_Model(self):
         test_scores, all_fold_weights, all_history, all_pred = self.time_series_cv('LSTM')
-        return test_scores, all_fold_weights, all_history, all_pred
+        return test_scores, all_history, all_pred
