@@ -94,7 +94,7 @@ class ForecastingModels:
     def time_series_cv(self, model_type):
         tscv = TimeSeriesSplit(n_splits=self.n_splits)
         test_scores = np.zeros((self.n_splits, 5, self.y.shape[1]))  # Store metrics for each fold
-        all_history, all_pred = {}, {}, {} 
+        all_history, all_pred = {}, {} 
 
         for count, (train_idx, valid_idx) in enumerate(tscv.split(self.X)):
             print(f"Fold {count + 1}")
