@@ -120,13 +120,13 @@ class ForecastingModels:
         return test_scores, all_history, all_pred
 
     def RNNSimple_Model(self):
-        test_scores, all_fold_weights, all_history, all_pred = self.time_series_cv('RNN') 
+        test_scores, all_history, all_pred = self.time_series_cv('RNN') 
         return test_scores, all_history, all_pred
 
     def GRU_Model(self):
-        test_scores, all_fold_weights, all_history, all_pred = self.time_series_cv('GRU')
+        test_scores,  all_history, all_pred = self.time_series_cv('GRU')
         return test_scores, all_history, all_pred
 
     def LSTM_Model(self):
-        test_scores, all_fold_weights, all_history, all_pred = self.time_series_cv('LSTM')
+        test_scores, all_history, all_pred = self.time_series_cv('LSTM')
         return test_scores, all_history, all_pred
