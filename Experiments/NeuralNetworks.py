@@ -114,7 +114,7 @@ class ForecastingModels:
                 test_scores[count, 2, i] = round(mean_absolute_error(y_true_i, y_pred_i), 3)
                 test_scores[count, 3, i] = round(calculate_mape(y_true_i, y_pred_i), 3)
                 test_scores[count, 4, i] = round(r2_score(y_true_i, y_pred_i), 3)
-        return test_scores, all_history, all_pred
+        return test_scores, all_history, all_pred, None, None
 
     def train_model(self, model_type):
         return self.time_series_cv(model_type) if self.use_cv else self.train_without_cv(model_type)
