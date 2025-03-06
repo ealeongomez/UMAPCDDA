@@ -86,8 +86,9 @@ class ForecastingModels:
         return model, history
 
     def train_without_cv(self, model_type):
-        """Entrena el modelo sin validación cruzada"""
-        X_train, X_valid, y_train, y_valid = self.X, self.X_test, self.y, self.y_test
+        split_idx = int(len(self.X) * 0.8)  
+        X_train, X_valid = self.X[:split_idx], self.X[split_idx:]
+        y_train, y_valid = self.y[:split_idx], self.y[split_idx:]
         model, history = self.build_and_train_model(model_type, X_train, y_train, X_valid, y_valid)
         y_pred = model.predict(self.X_test)
         metrics_table, metrics_dict = self.Performance_Metrics(y_pred)
